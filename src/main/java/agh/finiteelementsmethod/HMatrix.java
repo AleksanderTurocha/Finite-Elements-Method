@@ -7,8 +7,22 @@ import static java.lang.Math.round;
 import static java.lang.Math.sqrt;
 
 public class HMatrix {
-    // Temperature set at the beginning
-    private static final double CONDUCT = 30;
+
+    // Global data is used here to pass conductivity during calculating final stage of H matrix
+    private final GlobalData globalData;
+    private final Grid grid;
+
+    private final List<Node> nodes;
+
+    private final List<Element> elements;
+
+    public HMatrix(GlobalData globalData, Grid grid, List<Node> nodes, List<Element> elements)
+    {
+        this.globalData = globalData;
+        this.grid = grid;
+        this.nodes = nodes;
+        this.elements = elements;
+    }
 
     // Gauss nodes for 2 points
     private final Point[] pointArray2P = {
@@ -52,7 +66,7 @@ public class HMatrix {
     };
 
     // Wages for 2 points
-    double[] wages2P = {1, 1};
+    double[] wages2P = {1, 1, 1, 1};
 
     //Wages for 3 points
     double[] wages3P = {5.0/9.0, 8.0/9.0, 5.0/9.0};
@@ -60,146 +74,28 @@ public class HMatrix {
     //Wages for 4 points
     double[] wages4P = {(18 - sqrt(30)) / 36, (18 + sqrt(30)) / 36, (18 + sqrt(30)) / 36, (18 - sqrt(30)) / 36};
 
-    // Point subclass holding Gauss node coordinates
-    static class Point {
-        private double ksi;
-        private double eta;
-
-        public double getKsi() {
-            return ksi;
-        }
-
-        public void setKsi(double ksi) {
-            this.ksi = ksi;
-        }
-
-        public double getEta() {
-            return eta;
-        }
-
-        public void setEta(double eta) {
-            this.eta = eta;
-        }
-
-        public Point(double ksi, double eta) {
-            this.ksi = ksi;
-            this.eta = eta;
-        }
-    }
-
-    // Counting derivatives of shape functions
-    // Interface of a derivative a shape function
-    public interface DShapeFunction {
-        double calculate(double value);
-    }
-
-    // Implementation of all derivative functions in form of a class with an interface
-    // N1 / ksi
-    static class DN1DKsi implements DShapeFunction {
-        @Override
-        public double calculate(double eta) {
-            return -0.25 * (1 - eta);
-        }
-    }
-
-    // N2 / ksi
-    static class DN2DKsi implements DShapeFunction {
-        @Override
-        public double calculate(double eta) {
-            return 0.25 * (1 - eta);
-        }
-    }
-
-    // N3 / ksi
-    static class DN3DKsi implements DShapeFunction {
-        @Override
-        public double calculate(double eta) {
-            return 0.25 * (1 + eta);
-        }
-    }
-
-    // N4 / ksi
-    static class DN4DKsi implements DShapeFunction {
-        @Override
-        public double calculate(double eta) {
-            return -0.25 * (1 + eta);
-        }
-    }
-
-    // N1 / eta
-    static class DN1DEta implements DShapeFunction {
-        @Override
-        public double calculate(double ksi) {
-            return -0.25 * (1 - ksi);
-        }
-    }
-
-    // N2 / eta
-    static class DN2DEta implements DShapeFunction {
-        @Override
-        public double calculate(double ksi) {
-            return -0.25 * (1 + ksi);
-        }
-    }
-
-    // N3 / eta
-    static class DN3DEta implements DShapeFunction {
-        @Override
-        public double calculate(double ksi) {
-            return 0.25 * (1 + ksi);
-        }
-    }
-
-    // N4 / eta
-    static class DN4DEta implements DShapeFunction {
-        @Override
-        public double calculate(double ksi) {
-            return 0.25 * (1 - ksi);
-        }
-    }
-
-    // Creating tables derivatives eta and ksi
-    static final DShapeFunction[] dNdKsiFunctions = {new DN1DKsi(), new DN2DKsi(), new DN3DKsi(), new DN4DKsi()};
-    static final DShapeFunction[] dNdEtaFunctions = {new DN1DEta(), new DN2DEta(), new DN3DEta(), new DN4DEta()};
-
-    // Universal Element structure containing arrays of dNdKsi and dNdEta
-    static class UniversalElement {
-        private double[][] arraydNdKsi;
-        private double[][] arraydNdEta;
-
-        public UniversalElement(double[][] arraydNdKsi, double[][] arraydNdEta) {
-            this.arraydNdKsi = arraydNdKsi;
-            this.arraydNdEta = arraydNdEta;
-        }
+//    static Point point1 = new Point(0, 0);
+//    static Point point2 = new Point(0.025, 0);
+//    static Point point3 = new Point(0.025, 0.025);
+//    static Point point4 = new Point(0, 0.025);
+//
+//    static List<Point> pointList = List.of(point1, point2, point3, point4);
 
 
-        public double[][] getArraydNdKsi() {
-            return arraydNdKsi;
-        }
 
-        public void setArraydNdKsi(double[][] arraydNdKsi) {
-            this.arraydNdKsi = arraydNdKsi;
-        }
 
-        public double[][] getArraydNdEta() {
-            return arraydNdEta;
-        }
-
-        public void setArraydNdEta(double[][] arraydNdEta) {
-            this.arraydNdEta = arraydNdEta;
-        }
-    }
-
-    // Given point coordinates dropped into the list
-    static Point point1 = new Point(0, 0);
-    static Point point2 = new Point(0.025, 0);
-    static Point point3 = new Point(0.025, 0.025);
-    static Point point4 = new Point(0, 0.025);
-
-    static List<Point> pointList = List.of(point1, point2, point3, point4);
 
     // Main calculating function
-    double[][] calculatingMatrixH (int points) {
+    double[][] calculateMatrixH(int points, int elementID) {
+        // Given element nodes dropped into the list
+        Element wantedElement = elements.get(elementID);
+        Node elementNode1 = nodes.get(wantedElement.getID(0)-1);
+        Node elementNode2 = nodes.get(wantedElement.getID(1)-1);
+        Node elementNode3 = nodes.get(wantedElement.getID(2)-1);
+        Node elementNode4 = nodes.get(wantedElement.getID(3)-1);
+
+        List<Node> elementNodesList = List.of(elementNode1, elementNode2, elementNode3, elementNode4);
+
         int size = points * points;
         double[][] arraydNdKsi = new double[4][size];
         double[][] arraydNdEta = new double[4][size];
@@ -226,7 +122,7 @@ public class HMatrix {
         UniversalElement universalElement = new UniversalElement(arraydNdKsi, arraydNdEta);
 
         // Array J = dydEta and dxdKsi
-        double[][] arrayJ = calculateJ(size, universalElement);
+        double[][] arrayJ = calculateJ(size, universalElement, elementNodesList);
 
         // Calculating detJ
         double[] detJArray = new double[size];
@@ -275,13 +171,13 @@ public class HMatrix {
             }
         }
 
-        // Creating array of those H1, H2 etc. matrixes and multiplying values with temperature and detJ
+        // Creating array of those H1, H2 etc. matrixes and multiplying values with conductivity and detJ
         double[][][] arrayH = new double[size][4][4];
 
         for (int i = 0; i < size; i++) {
             for (int j = 0; j < 4; j++) {
                 for (int k = 0; k < 4; k++) {
-                    arrayH[i][j][k] = CONDUCT * (Hdx[i][j][k] + Hdy[i][j][k]) * detJArray[i];
+                    arrayH[i][j][k] = globalData.getConductivity() * (Hdx[i][j][k] + Hdy[i][j][k]) * detJArray[i];
                 }
             }
         }
@@ -321,13 +217,13 @@ public class HMatrix {
     void displayH(double[][] H) {
         for (int i = 0; i < 4; i++) {
             for (int j = 0; j < 4; j++) {
-                System.out.print(round(H[j][i]) + " | ");
+                System.out.printf("|%-6.2f|" , H[j][i]);
             }
             System.out.println();
         }
     }
 
-    private double[][] calculateJ(int size, UniversalElement universalElement) {
+    private double[][] calculateJ(int size, UniversalElement universalElement, List<Node> elementNodesList) {
         double[][] arrayJ = new double[size][4];
         for (int j = 0; j < size; j++) {
             double dxdKsi = 0;
@@ -335,10 +231,10 @@ public class HMatrix {
             double dxdEta = 0;
             double dydEta = 0;
             for (int i = 0; i < 4; i++) {
-                dxdKsi += pointList.get(i).getKsi() * universalElement.getArraydNdKsi()[i][j];
-                dydKsi += pointList.get(i).getEta() * universalElement.getArraydNdKsi()[i][j];
-                dxdEta += pointList.get(i).getKsi() * universalElement.getArraydNdEta()[i][j];
-                dydEta += pointList.get(i).getEta() * universalElement.getArraydNdEta()[i][j];
+                dxdKsi += elementNodesList.get(i).getX() * universalElement.getArraydNdKsi()[i][j];
+                dydKsi += elementNodesList.get(i).getY() * universalElement.getArraydNdKsi()[i][j];
+                dxdEta += elementNodesList.get(i).getX() * universalElement.getArraydNdEta()[i][j];
+                dydEta += elementNodesList.get(i).getY() * universalElement.getArraydNdEta()[i][j];
                 arrayJ[j][0] = dxdKsi;
                 arrayJ[j][1] = dydKsi;
                 arrayJ[j][2] = dxdEta;
@@ -349,20 +245,22 @@ public class HMatrix {
     }
 
     private double[][] calculateDNDEta(int size, Point[] pointArray) {
+        UniversalElement universalElement = new UniversalElement();
         double[][] arraydNdEta = new double[4][size];
         for (int i = 0; i < 4; i++) {
             for (int j = 0; j < size; j++) {
-                arraydNdEta[i][j] = dNdEtaFunctions[i].calculate(pointArray[j].ksi);
+                arraydNdEta[i][j] = universalElement.dNdEtaFunctions(i, pointArray[j].getKsi());
             }
         }
         return arraydNdEta;
     }
 
     private double[][] calculateDNDKsi(int size, Point[] pointArray) {
+        UniversalElement universalElement = new UniversalElement();
         double[][] arraydNdKsi = new double[4][size];
         for (int i = 0; i < 4; i++) {
             for (int j = 0; j < size; j++) {
-                arraydNdKsi[i][j] = dNdKsiFunctions[i].calculate(pointArray[j].eta);
+                arraydNdKsi[i][j] = universalElement.dNdKsiFunctions(i, pointArray[j].getEta());
             }
         }
         return arraydNdKsi;

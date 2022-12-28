@@ -48,7 +48,8 @@ public class MeshReader {
                     Double.parseDouble(fileLines.get(iterator).trim().split(", ")[1]),
                     Double.parseDouble(fileLines.get(iterator).trim().split(", ")[2]),
                     0,
-                    0
+                    0,
+                    Integer.parseInt(fileLines.get(iterator).trim().split(", ")[0])
             ));
             iterator++;
         }
@@ -70,7 +71,8 @@ public class MeshReader {
     }
 
     void assignEdgeConditions(List<Node> nodes, int[] edgeConditionsArray) {
-        for (int i = 0; i <= edgeConditionsArray.length; i++) {
+        int size = nodes.size();
+        for (int i = 0; i <= size; i++) {
             for (int condition : edgeConditionsArray) {
                 if (i + 1 == condition) {
                     nodes.get(i).setBC(1);
@@ -87,6 +89,7 @@ public class MeshReader {
         iterator++;
         while (!fileLines.get(iterator).equals("*BC")) {
             elements.add(new Element(
+                    (int) Double.parseDouble(fileLines.get(iterator).trim().split(", ")[0]),
                     (int) Double.parseDouble(fileLines.get(iterator).trim().split(", ")[1]),
                     (int) Double.parseDouble(fileLines.get(iterator).trim().split(", ")[2]),
                     (int) Double.parseDouble(fileLines.get(iterator).trim().split(", ")[3]),

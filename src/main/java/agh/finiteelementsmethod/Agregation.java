@@ -8,11 +8,12 @@ public class Agregation {
         return new double[nodesAmount][nodesAmount];
     }
 
-    static double[][] agregate(double[][] globalH, double[][] H, List<Element> elements) {
+    static double[][] agregate(double[][] globalH, List<Element> elements) {
         for (Element element : elements) {
+            double[][] elementLocalH = element.getLocalH();
             for (int i = 0; i < 4; i++) {
                 for (int j = 0; j < 4; j++) {
-                    globalH[element.getID(i)-1][element.getID(j)-1] += H[i][j];
+                    globalH[element.getID(i)-1][element.getID(j)-1] += elementLocalH[i][j];
                 }
             }
         }
@@ -23,7 +24,7 @@ public class Agregation {
         int size = nodes.size();
         for (int i =0; i < size; i++) {
             for (int j = 0; j < size; j++) {
-                System.out.print(Math.ceil(globalH[i][j]) + "|");
+                System.out.printf("|%-6.2f|", globalH[i][j]);
             }
             System.out.println();
         }
