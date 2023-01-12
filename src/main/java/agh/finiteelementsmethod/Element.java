@@ -8,12 +8,32 @@ public class Element {
 
     private double[][] localH;
 
+    private double[] vectorP;
+
+    private double[][] localC;
+
     public Element(int elementID, int n1, int n2, int n3, int n4) {
         this.elementID = elementID;
         this.ID[0] = n1;
         this.ID[1] = n2;
         this.ID[2] = n3;
         this.ID[3] = n4;
+    }
+
+    public double[][] getLocalC() {
+        return localC;
+    }
+
+    public void setLocalC(double[][] localC) {
+        this.localC = localC;
+    }
+
+    public double[] getVectorP() {
+        return vectorP;
+    }
+
+    public void setVectorP(double[] vectorP) {
+        this.vectorP = vectorP;
     }
 
     public double[][] getLocalH() {

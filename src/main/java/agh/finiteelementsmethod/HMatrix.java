@@ -1,7 +1,9 @@
 package agh.finiteelementsmethod;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.function.Consumer;
 
 import static java.lang.Math.round;
 import static java.lang.Math.sqrt;
@@ -74,20 +76,10 @@ public class HMatrix {
     //Wages for 4 points
     double[] wages4P = {(18 - sqrt(30)) / 36, (18 + sqrt(30)) / 36, (18 + sqrt(30)) / 36, (18 - sqrt(30)) / 36};
 
-//    static Point point1 = new Point(0, 0);
-//    static Point point2 = new Point(0.025, 0);
-//    static Point point3 = new Point(0.025, 0.025);
-//    static Point point4 = new Point(0, 0.025);
-//
-//    static List<Point> pointList = List.of(point1, point2, point3, point4);
-
-
-
-
-
     // Main calculating function
     double[][] calculateMatrixH(int points, int elementID) {
-        // Given element nodes dropped into the list
+
+        // Element nodes dropped into the list
         Element wantedElement = elements.get(elementID);
         Node elementNode1 = nodes.get(wantedElement.getID(0)-1);
         Node elementNode2 = nodes.get(wantedElement.getID(1)-1);

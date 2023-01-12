@@ -2,7 +2,6 @@ package agh.finiteelementsmethod;
 
 import java.util.List;
 
-// To change points you have to change it here in mesapp and also if you want to work with certain agregated matrix you have to change points in BorderConditions -> calculateBorderConditions
 public class MesApp {
     public static void main(String[] args) {
         //Basics of FEM
@@ -30,29 +29,45 @@ public class MesApp {
 
         //Matrix H
         HMatrix hMatrix = new HMatrix(globalData, grid, nodes, elements);
-        double[][] H2P = hMatrix.calculateMatrixH(2, 0);
+//        double[][] H2P = hMatrix.calculateMatrixH(2, 0);
 
 //        // 2P
 //        System.out.println("2 points:");
-//        double[][] H2P = hMatrix.calculatingMatrixH(2);
+//        double[][] H2P = hMatrix.calculateMatrixH(2, 0);
 //        hMatrix.displayH(H2P);
 //
 //        // 3P
 //        System.out.println("3 points:");
-//        double[][] H3P = hMatrix.calculatingMatrixH(3);
+//        double[][] H3P = hMatrix.calculateMatrixH(3, 0);
 //        hMatrix.displayH(H3P);
 //
-        // 4P
+//        // 4P
 //        System.out.println("4 points:");
-//        double[][] H4P = hMatrix.calculatingMatrixH(4);
+//        double[][] H4P = hMatrix.calculateMatrixH(4, 0);
 //        hMatrix.displayH(H4P);
 
         // Matrix Hbc
         BorderConditions borderConditions = new BorderConditions(nodes, elements, globalData, new UniversalElement(), grid, hMatrix);
 
-        // Agregation with border conditions
+        // Agregation matrix H with border conditions
         System.out.println("Here starts global H with border conditions:");
-        double[][] borderConditionsMatrix = borderConditions.calculateBorderConditions();
-        Agregation.displayGlobalH(borderConditionsMatrix, nodes);
+        double[][] borderConditionsMatrixH = borderConditions.calculateBorderConditions(2);
+        Agregation.displayGlobalMatrix(borderConditionsMatrixH, nodes);
+
+        // Vector P with agregation
+        System.out.println("Here starts vector P with agregation:");
+        double[] globalVectorP = borderConditions.calculateVectorP(2);
+        Agregation.displayGlobalVectorP(globalVectorP, nodes);
+
+        // Matrix C
+        System.out.println();
+        System.out.println("Here starts global matrix C:");
+        CMatrix cMatrix = new CMatrix(globalData, grid, nodes, elements);
+        double[][] finalMatrixC = borderConditions.calculateMatrixC(2);
+        Agregation.displayGlobalMatrix(finalMatrixC, nodes);
+
+        // Time
+        Time.applyTime(borderConditionsMatrixH, finalMatrixC, globalVectorP, globalData, nodes);
+
     }
 }

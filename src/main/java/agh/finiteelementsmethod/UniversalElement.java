@@ -6,9 +6,15 @@ public class UniversalElement {
     private double[][] arraydNdKsi;
     private double[][] arraydNdEta;
 
+    private double[][] shapeFunctionValuesInIntegrationPoints;
+
     public UniversalElement(double[][] arraydNdKsi, double[][] arraydNdEta) {
         this.arraydNdKsi = arraydNdKsi;
         this.arraydNdEta = arraydNdEta;
+    }
+
+    public UniversalElement(double[][] shapeFunctionValuesInIntegrationPoints) {
+        this.shapeFunctionValuesInIntegrationPoints = shapeFunctionValuesInIntegrationPoints;
     }
 
     public UniversalElement() {}
@@ -67,9 +73,7 @@ public class UniversalElement {
 
     // Shape functions
     // N1
-    double N1(double ksi, double eta) {
-        return 0.25 * (1 - ksi) * (1 - eta);
-    }
+    double N1(double ksi, double eta) { return 0.25 * (1 - ksi) * (1 - eta); }
 
     // N2
     double N2(double ksi, double eta) {
@@ -82,9 +86,7 @@ public class UniversalElement {
     }
 
     // N4
-    double N4(double ksi, double eta) {
-        return 0.25 * (1 - ksi) * (1 + eta);
-    }
+    double N4(double ksi, double eta) { return 0.25 * (1 - ksi) * (1 + eta); }
 
     // Derivatives of shape functions
     // N1 / ksi
